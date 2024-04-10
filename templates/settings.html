@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Profile</title>
+
+    <style>
+        body, html {
+            height: 100%;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #f5ca5c;
+        }
+        .container{
+            text-align: center;
+        }
+
+        img#logo {
+            height: 100px;
+            width: 100px;
+            border: none;
+            border-radius: 50%;
+        }
+
+        form {
+            margin: top 20px;
+            text-align: center;
+        }
+        img#logo{
+            height: 100px;
+            width: 100px;
+        }
+
+        img#schedule{
+          height: 300px;
+          width: 500px;
+        }
+
+      ::placeholder {
+          text-align: center;
+      }
+
+      
+    </style>
+
+  <!-- for the deletion button -->
+  <title>Delete Driver</title>
+  <script>
+    function deleteDriver() {
+      var xhr = new XMLHttpRequest();
+      xhr.open("POST", "/delete_account", true);
+      xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+      xhr.onreadystatechange = function() {
+          if (xhr.readyState == 4 && xhr.status == 200) {
+              // Redirecting to the login page upon successful deletion
+              window.location.href = '/login';
+          }
+      };
+      
+      xhr.send(); //
+    }
+  </script>
+  
+</head>
+
+
+<body>
+    <div class= "container">
+        <img id = "logo" src="static/profile.jpg">
+        <form>
+            Email<br>
+          <input type="email" id="email" name="email" ><br>
+            Password<br>
+          <input type="password" id="pswd" name="pswd" ><br>
+            Role<br>
+          <input type="role" name="role" > <br> <br>
+
+          <label for="security">Privacy and Security:</label>
+          <input type="checkbox" id="security" name="security">
+          <br>
+          <label for="privacy">Profile Sharing:</label>
+          <input type="checkbox" id="privacy" name="privacy">
+          <br>
+          <label for="notifications">Notifications:</label>
+          <input type="checkbox" id="notifications" name="notifications">
+          <br><br>
+
+          <input type="submit" value="Save Preferences"> <br> <br>
+
+           Class Schedule: <br>
+            <img id = "schedule"src="static/ClassSchedule.jpg">
+
+          <p>Do you want to delete your account?</p>
+          <h2> Click here below! </h2>
+          <button onclick="deleteDriver()">Delete Account</button>
+
+        </form>
+    </div>
+</body>
+</html>

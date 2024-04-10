@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Passenger Page</title>
+
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css" />
+
+
+    <!-- Adding CSS for styling -->
+    <style>
+        body {
+            background-color: #f5ca5c;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            width: 80%;
+            margin: 0 auto;
+            padding-top: 20px;
+        }
+
+        #profile {
+            float: right;
+            position: relative;
+            margin-top: 10px;
+            margin-right: 10px;
+        }
+
+        #profile img {
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+        }
+
+        #profileOptions {
+            display: none;
+            position: absolute;
+            right: 0;
+            background-color: #f9f9f9;
+            min-width: 160px;
+            box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+            z-index: 1;
+        }
+
+        #profileOptions a {
+            color: black;
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+        }
+
+        #profile:hover #profileOptions {
+            display: block;
+        }
+
+        h1 {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        form {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        input[type="text"],
+        select {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+
+        button[type="submit"] {
+            background-color: #0e0e1a;
+            color: #eaeaea;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        button[type="submit"]:hover {
+            background-color: #021d4e;
+        }
+
+        h2 {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .driver {
+            border: 1px solid #000000;
+            padding: 10px;
+            margin: 10px auto;
+            width: 50%;
+            background-color: #fff;
+        }
+
+        .driver button {
+            margin-top: 10px;
+            background-color: #0e0e1a;
+            color: #eaeaea;
+            padding: 5px 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .driver button:hover {
+            background-color: #021d4e;
+        }
+
+        .map-container {
+            text-align: center;
+        }
+
+        #map {
+            height: 300px;
+            width: 80%;
+            margin: 0 auto;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div id="profile">
+            <img src="static/profile.jpg" alt="Profile">
+            <div id="profileOptions">
+                <a href="{{url_for('EditProfile')}}">Edit Profile</a>
+                <a href="{{url_for('settings')}}">Settings</a>
+                <a href="/" onclick="return confirm('Are you sure you want to sign out?');">Sign Out</a>
+            </div>
+        </div>
+        <h1>Welcome, Passenger!</h1>
+        <!-- Form for requesting a ride -->
+        <form id="passengerForm">
+            <label for="pickup">Pickup Location:</label>
+            <input type="text" id="pickup" name="pickup" required>
+            <label for="destination">Destination:</label>
+            <select id="destination" name="destination">
+                <option value="mainCampus">Main Campus</option>
+                <option value="shadyGrove">Shady Grove Campus</option>
+            </select>
+            <button type="submit">Submit</button>
+        </form>
+
+        <!-- Container for displaying available drivers -->
+        <h2>Available Drivers:</h2>
+        <div id="availableDrivers"></div>
+
+        <!-- Leaflet map integration -->
+        <div class="map-container">
+            <h2>Location:</h2>
+            <div id="map" style="width:75%; height: 75vh"></div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
+
+    <script>
+        // Function to initialize Leaflet Map
+        function initMap() {
+            // Initialize map centered at the Universities at Shady Grove
+            var map = L.map('map').setView([39.1242, -77.2185], 15);
+
+            // Add OpenStreetMap tile layer to the map
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19,
+                attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors'
+            }).addTo(map);
+
+            // Sample marker for Universities at Shady Grove
+            var marker = L.marker([39.1242, -77.2185]).addTo(map).bindPopup('Universities at Shady Grove').openPopup();
+
+            L.Routing.control({
+                waypoints: [
+                    L.latLng(39.1242, -77.2185),
+                    L.latLng(39.09733223568661, -77.19395936544832)
+                ]
+            }).addTo(map);
+        }
+
+        // Function to display available drivers
+        function displayAvailableDrivers(drivers) {
+            var availableDriversContainer = document.getElementById('availableDrivers');
+            availableDriversContainer.innerHTML = '';
+            drivers.forEach(function (driver) {
+                var driverElement = document.createElement('div');
+                driverElement.classList.add('driver');
+                driverElement.innerHTML = '<strong>Driver:</strong> ' + driver.driverName + ' | <strong>ETA:</strong> ' + driver.eta + ' | <button onclick="requestRide(\'' + driver.id + '\')">Select Driver</button>';
+                availableDriversContainer.appendChild(driverElement);
+            });
+        }
+
+        // Function to request a ride
+        function requestRide(driverId) {
+            // Implement logic to request the ride
+            alert('Ride requested from driver with ID: ' + driverId);
+        }
+
+        // Sample data for available drivers (replace with actual data from backend)
+        var availableDrivers = [
+            { id: '1', driverName: 'Michael', eta: '5 minutes' },
+            { id: '2', driverName: 'Emily', eta: '8 minutes' }
+        ];
+
+        // Display available drivers on page load
+        displayAvailableDrivers(availableDrivers);
+
+        // Call initialize map function
+        initMap();
+    </script>
+</body>
+
+</html>

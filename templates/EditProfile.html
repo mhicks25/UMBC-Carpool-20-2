@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Profile</title>
+
+    <style>
+        body, html {
+            height: 100%;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #f5ca5c;
+        }
+        .container{
+          text-align: center;
+        }
+
+        img {
+            height: 100px;
+            width: 100px;
+            border: none;
+        }
+
+        form {
+            margin: top 20px;
+            text-align: center;
+        }
+
+      .edit_container {
+        padding: 10px;
+        background-color: #FFFFFF;
+      }
+
+      /* Full-width input fields */
+      input[type=text], input[type=password], input[type=email], input[type=date], input[type=tel], select{
+        width: 100%;
+        padding: 15px;
+        margin: 5px 0 22px 0;
+        display: inline-block;
+        border: none;
+        background: #f1f1f1;
+      }
+
+      #umbc-logo {
+          position: absolute;
+          top: 10px;
+          left: 10px;
+      }
+      
+      #setting_logo {
+        border-radius: 50%;
+      }
+    </style>
+</head>
+
+
+<body>
+  <div class="container">
+    <a href="/">
+        <img id="umbc-logo" src="static/UMBCLOGO.png" alt="UMBC Logo">
+    </a>
+  <div style="text-align: center; margin-bottom: 20px;">
+      <img id="setting_logo" src="static/profile.jpg">
+  </div>
+
+    <div class = "edit_container">
+        <form action="/edit_profile" method="POST">
+
+          <label for="fname">First Name</label>
+          <input type="text" id="fname" name="fname" value=""><br><br>
+
+          <label for="lname">Last Name</label>
+          <input type="text" id="lname" name="lname" value=""><br><br>
+
+          <label for="address">Address</label><br><br>
+          <input type="text" id="street_name" name="street_name" placeholder="Street Name" required><br>
+          <input type="text" id="city" name="city" placeholder="City" required><br>
+          <input type="text" id="state" name="state" required ><br>
+          <input type="text" id="zipcode" name="zipcode" placeholder="Zipcode" pattern="[0-9]{5}"required><br><br>
+
+          <label for="dob">Age</label><br>
+          <input type="date" id="age" name="age" required><br><br>
+
+          <label for="num">Phone Number:</label>
+          <input type="tel" id="num" name="num" placeholder="123-456-7890" pattern="[0-9]{3}-[0-9]{3}-[0-9]{4}" required><br>
+          <small>Format: 012-345-6789</small>
+
+          <hr><br>
+          
+          <button type="button" onclick="confirmChanges()">Confirm Changes</button>
+          <button type="button" onclick="cancelChanges()">Cancel</button>
+        </form>
+    </div>
+    </div>
+
+  <script>
+      function cancelChanges() {
+          if (confirm('Are you sure you want to cancel?')) {
+              window.history.back();
+          }
+      }
+  
+      function confirmChanges() {
+          if (confirm('Are you sure you want to submit the changes?')) {
+              document.forms[0].submit();
+          }
+      }
+  </script>
+</body>
+</html>

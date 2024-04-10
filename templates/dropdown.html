@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+
+<style>
+
+.dropdown {
+    display: inline;
+}   
+.dropdown button{
+    background-color: hsl(0%, 0%, 80%);
+    color: black;
+    padding: 10px 15px;
+    border: none;
+    cursor: pointer;
+
+}
+
+.dropdown a{
+    display: block;
+    color: black;
+    text-decoration: none;
+    padding: 10px 15px;
+}
+
+.dropdown .dropdown-content{
+    display: none;
+    position: absolute;
+    background-color: hsl(0%, 0%, 95%);
+    min-width: 100px;
+    box-shadow: 2px 2px 5px hsl(0, 0%, 0%);
+}
+
+.dropdown:hover .dropdown-content{
+    display: block;
+}
+
+.dropdown a:hover{
+    background-color: hsl(0, 0%, 70%);
+}
+
+.dropdown button:hover,
+.dropdown button.highlighted  {
+    background-color: hsl(0, 0%, 100%);
+}
+.dropdown img {
+    width: 100px; 
+    height: 100px;
+    vertical-align: top;
+    margin-right: 5px;
+}
+
+
+</style>
+
+<div class = "dropdown">
+    <img src="profile.jpg" alt="Show">
+    <div class="dropdown-content">
+        <a href="./EditProfile.html">Edit Profile</a>
+        <a href="./settings.html">Settings</a>
+        <button style="background-color: white;">Sign Out</button>
+    </div>
+
+</div>
+
+
+</body>
+</html>

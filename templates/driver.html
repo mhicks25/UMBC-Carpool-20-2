@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Driver Page</title>
+
+    <!-- Add CSS for styling -->
+    <style>
+      @keyframes blink {
+          0% {opacity: 1;}
+          50% {opacity: 0;}
+          100% {opacity: 1;}
+      }
+      h1 {
+          animation: blink 1s linear infinite;
+      }
+        body {
+            background-color: #f5ca5c;
+            font-family: Arial, sans-serif;
+        }
+        .container {
+            width: 50%;
+            margin: 1 auto;
+        }
+        #UMBCLOGO {
+            float: left;
+            margin-right: 90px;
+            width: 20%;
+        }
+        #profile {
+            float: right;
+            position: relative;
+        }
+        #profile img {
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+        }
+        #profileOptions {
+            display: none;
+            position: absolute;
+            right: 0;
+            background-color: #f9f9f9;
+            min-width: 160px;
+            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+            z-index: 1;
+        }
+        #profileOptions a {
+            color: black;
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+        }
+        #profile:hover #profileOptions {
+            display: block;
+        }
+        #map {
+            height: 200px;
+            width: 80%;
+            margin-bottom: 20px;
+            margin-left: auto;
+            margin-right: auto; 
+        }
+        #rideRequests {
+            margin-bottom: 20px;
+        }
+        .rideRequest {
+            border: 1px solid #000000;
+            padding: 10px;
+            margin-bottom: 10px;
+         }
+        .rideRequest button {
+            margin-left: 10px;
+        }        
+        .btn {
+        font-size: 1.2rem;
+        padding: 1rem 2.5rem;
+        border: none;
+        outline: none;
+        border-radius: 0.4rem;
+        cursor: pointer;
+        text-transform: uppercase;
+        background-color: rgb(14, 14, 26);
+        color: rgb(234, 234, 234);
+        font-weight: 700;
+        transition: 0.6s;
+        box-shadow: 0px 0px 60px #e80a0a;
+        -webkit-box-reflect: below 10px linear-gradient(to bottom, rgba(0,0,0,0.0), rgba(0,0,0,0.4));
+        }
+  
+        .btn:active {
+        scale: 0.92;
+        }
+  
+        .btn-container{
+        display: flex;
+        justify-content: center;
+        }
+  
+        .btn:hover {
+        background: rgb(2,29,78);
+        background: linear-gradient(270deg, rgba(2, 29, 78, 0.681) 0%, rgba(218, 184, 16, 0.873) 60%);
+        color: rgb(4, 4, 38);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+      <a href= "/">
+        <img id="UMBCLOGO" src="static/UMBCLOGO.png" alt="UMBCLOGO">
+      </a>
+    </div>
+
+    <div id="profile">
+        <img src="static/profile.jpg" alt="Profile"> 
+        <div id="profileOptions">
+          
+          <a href='{{url_for('EditProfile')}}'>Edit Profile</a>
+          <a href='{{url_for('settings')}}'>Settings</a>
+          <a href='/' onclick="return confirm('Are you sure you want to sign out?');">Sign Out</a>
+        </div>
+      
+    </div>
+
+    <h1>Welcome, Driver!</h1>
+
+    <!-- Form for submitting current location and destination -->
+    <form id="driverForm">
+        <label for="location">Current Location:</label><br>
+        <input type="text" id="pickup" name="pickup"><br>
+      
+        <label for="destination">Destination:</label><br>
+        <select id="destination" name="destination">
+        <option value="mainCampus">Main Campus</option>
+        <option value="shadyGrove">Shady Grove Campus</option>
+        </select><br>
+        <button type="submit">Submit</button>
+    </form>
+
+    <!-- Container for displaying nearby ride requests -->
+    <h2>Available Passengers:</h2>
+    <div id="rideRequests"></div>
+
+    <!-- Google Maps integration -->
+   <h2>Location:</h2>
+    <div id="map"></div>
+
+    <script>
+        // Function to initialize Google Maps
+        function initMap() {
+            // Initialize map centered at a specific location (e.g., driver's current location)
+            var map = new google.maps.Map(document.getElementById('map'), {
+                center: {lat: 0, lng: 0}, // Update with driver's current location
+                zoom: 12 // Adjust zoom level as needed
+            });
+
+            // Sample marker for driver's current location
+            var marker = new google.maps.Marker({
+                position: {lat: 0, lng: 0}, // Update with driver's current location
+                map: map,
+                title: 'Driver Location'
+            });
+        }
+
+      // Function to display nearby ride requests
+        function displayRideRequests(requests) {
+            var rideRequestsContainer = document.getElementById('rideRequests');
+            rideRequestsContainer.innerHTML = '';
+            requests.forEach(function(request) {
+                var requestElement = document.createElement('div');
+                requestElement.classList.add('rideRequest');                
+                requestElement.innerHTML = '<strong>Rider:</strong> ' + request.riderName + ' | <strong>Destination:</strong> ' + request.destination + 
+                ' | <button onclick="acceptRequest(\'' + request.id + '\')">Accept</button>' + ' | <button onclick="declineRequest(\'' + request.id + '\')">Decline</button>';
+                rideRequestsContainer.appendChild(requestElement);
+            });
+        }
+
+        // Function to accept a ride request
+        function acceptRequest(requestId) {
+            // Implement logic to accept the request
+            // For example, you can send a request to the backend API to accept the ride request
+            // Replace the URL with the actual endpoint of your backend API
+            fetch('/api/accept-ride-request', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ requestId: requestId })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    // Handle the response from the backend API
+                    if (data.success) {
+                        // Request accepted successfully
+                        // Perform any necessary actions, such as updating the UI or notifying the user
+                    } else {
+                        // Request acceptance failed
+                        // Handle the error, display an error message, or take appropriate action
+                    }
+                })
+                .catch(error => {
+                    // Handle any errors that occurred during the request
+                    console.error('Error accepting ride request:', error);
+                });
+        }
+
+        function declineRequest(requestId) {
+            // Implement logic to decline the request
+            // For example, you can send a request to the backend API to decline the ride request
+            // Replace the URL with the actual endpoint of your backend API
+            fetch('/api/decline-ride-request', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ requestId: requestId })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    // Handle the response from the backend API
+                    if (data.success) {
+                        // Request declined successfully
+                        // Perform any necessary actions, such as updating the UI or notifying the user
+                        // Find the passenger element by its request ID and remove from driver view
+                        //it will also remove that passenger has a pending request
+                        var passengerElement = document.querySelector('.rideRequest[data-request-id="' + requestId + '"]');
+
+                        // Remove the passenger element from the rideRequests container
+                        if (passengerElement) {
+                            passengerElement.remove();
+                        }
+
+                        } else {
+                        // Request decline failed
+                        // Handle the error, display an error message, or take appropriate action
+                        console.error('Error declining ride request:', error);
+                        console.log('Please try again.');
+                    }
+                })
+                .catch(error => {
+                    // Handle any errors that occurred during the request
+                    console.error('Error declining ride request:', error);
+                });
+        }
+
+        // Sample data for nearby ride requests (replace with actual data from backend)
+        var nearbyRequests = [
+            { id: '1', riderName: 'John', destination: '123 Main St' },
+            { id: '2', riderName: 'Alice', destination: '456 Elm St' }
+        ];
+      
+        // Display nearby ride requests on page load
+        displayRideRequests(nearbyRequests);
+    </script>
+
+      <!--<input type="button" value="Request Ride">-->
+  <div class="btn-container">
+      <button class = "btn">
+          <div id = "cent">
+              Start ride!
+          </div>
+      </button>
+  </div>
+  
+    <!-- Load Google Maps API with callback to initialize the map -->
+    <script src="https://maps.googleapis.com/maps/api/js?key=OUR_API_KEY&callback=initMap" async defer></script>
+</body>
+</html>

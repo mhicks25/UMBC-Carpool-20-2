@@ -1,0 +1,225 @@
+import sqlite3
+import database
+import bcrypt
+
+from flask import Flask, redirect, render_template, request, session, flash, url_for #type: ignore
+
+app = Flask(__name__)
+
+# using a secret key to securely sign the session cookie
+# will change this key tuesday
+app.secret_key = 'your_secret_key'
+
+@app.route('/')
+def index():
+  return render_template('index.html')
+
+# changed to improved the login page to access the database
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        email = request.form.get('email')
+        pswd = request.form.get('pswd')
+      
+        # Connect to the database
+        conn = sqlite3.connect('database.db')
+        cursor = conn.cursor()
+      
+        # Check if the email, password, and role match records in the database
+        result = cursor.execute('SELECT * FROM student WHERE email = ?',(email,)).fetchone()
+        conn.close()
+        
+      
+        if result:
+            #Store student infomation in session
+            session['student_info'] = {
+              'fname': result[1],
+              'lname': result[2],
+              'street_name': result[3],
+              'city': result[4],
+              'state': result[5],
+              'zipcode': result[6],
+              'age': result[7],
+              'num': result[8],
+              'email': result[9],
+              'pswd': result[10]
+            }
+            # Redirect to a different page based on the role
+            if result[11] == 'driver':
+              # Store the student ID and role in the session
+              session['student_id'] = result[0]
+              session['role'] = result[11]
+              return redirect('driver')
+            else:
+              # Store the student ID and role in the session
+              session['student_id'] = result[0]
+              session['role'] = result[11]
+              return redirect('passenger')
+        else:
+            # Login failed, show an error message
+            flash('Invalid email or password', 'error')
+          
+    return render_template('login.html')
+
+@app.route('/dropdown.html')
+def dropdown():
+  return render_template('dropdown.html')
+
+
+@app.route('/edit')
+def EditProfile():
+  
+    if 'student_id' not in session:
+        return redirect(url_for('login'))
+    
+    student_info = session['student_info']
+
+    return render_template('EditProfile.html', student_info=student_info)
+
+
+@app.route('/settings')
+def settings():
+  return render_template('settings.html')
+
+
+@app.route('/driver')
+def driver():
+  return render_template('driver.html')
+
+
+@app.route('/passenger')
+def passenger():
+  return render_template('passenger.html')
+
+
+#register page
+@app.route('/register')
+def register():
+  return render_template('register.html')
+
+#delete account
+@app.route('/delete_account', methods=['POST'])
+def delete_account():
+    if 'student_id' in session:
+        student_id = session['student_id']  # retrieving student_id from session
+        conn = sqlite3.connect('database.db')
+        cursor = conn.cursor()
+      
+        # perform the deletion operations, using student_id
+        cursor.execute('DELETE FROM student WHERE student_id = ?', (student_id,))
+        cursor.execute('DELETE FROM driver WHERE student_id = ?', (student_id,))
+        cursor.execute('DELETE FROM passenger WHERE student_id = ?', (student_id,))
+        conn.commit()
+        conn.close()
+
+        # clear the session or log the user out
+        session.pop('student_id', None)  # clearing student_id from session
+
+        return redirect('login')
+    else:
+        # user is not logged in or student_id is not in session
+        return 'Error: User not found', 404
+
+#register page - form is submitted
+@app.route('/reg_success', methods=['POST'])
+def reg_success():
+  
+  #get the data from the form
+  #student info
+  fname = request.form.get('fname')
+  lname = request.form.get('lname')
+  street_name = request.form.get('street_name')
+  city = request.form.get('city')
+  state = request.form.get('state')
+  zipcode = request.form.get('zipcode')
+  age = request.form.get('age')
+  num = request.form.get('num')
+  email = request.form.get('email')
+  pswd = request.form.get('psw')
+
+  #choice between driver and passenger
+  role = request.form.get('role')
+
+  #driver info
+  lic = request.form.get('lic') or None
+  lic_plate = request.form.get('lic_plate') or None
+  
+  salt = bcrypt.gensalt()
+  hashed_password = bcrypt.hashpw(pswd.encode('utf-8'), salt)
+
+  #connect to the database
+  conn = sqlite3.connect('database.db')
+  cursor = conn.cursor()
+
+  #insert the data from form into student
+  cursor.execute('INSERT INTO student (fname, lname, street_name, city, state, zipcode, age, num, email, pswd_hash, pswd_salt, role) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', (fname, lname, street_name, city, state, zipcode, age, num, email, hashed_password, salt, role))
+  #get student_id from student
+  student_id = cursor.lastrowid
+  
+  #insert the data from form into driver
+  if(role == 'driver'):
+    cursor.execute('INSERT INTO driver (student_id, lic, lic_plate) VALUES (?,?,?)', (student_id,lic, lic_plate))
+  else:
+    #insert the data from form into passenger
+    cursor.execute('INSERT INTO passenger (student_id) VALUES (?)', (student_id,))
+
+  conn.commit()
+  conn.close()
+  
+  return redirect('login')
+
+def create_database():
+  conn = sqlite3.connect('database.db')
+  database.create_table()
+  conn.close()
+
+@app.route('/edit_profile', methods=['GET','POST'])
+def edit_profile(student_id):
+  
+  if 'student_id' not in session:
+    return redirect(url_for('login'))
+    
+  conn = sqlite3.connect('database.db')
+  cursor = conn.cursor()
+  
+  
+  student_info = getStudentInfo()
+  
+  conn.execute('UPDATE student SET fname=?, lname=?, street_name=?, city=?, state=?, zipcode=?, age=?, num=?, email=?, pswd=? WHERE student_id = ?', 
+               (student_info['fname'], student_info['lname'], student_info['street_name'], student_info['city'], student_info['state'], student_info['zipcode'], 
+                student_info['age'], student_info['num'], student_info['email'], student_info['pswd'], session[student_id]))
+  
+  conn.close()
+  
+  return redirect('edit')
+
+#Get Student Info
+def getStudentInfo():
+  #student info
+  fname = request.form.get('fname')
+  lname = request.form.get('lname')
+  street_name = request.form.get('street_name')
+  city = request.form.get('city')
+  state = request.form.get('state')
+  zipcode = request.form.get('zipcode')
+  age = request.form.get('age')
+  num = request.form.get('num')
+  email = request.form.get('email')
+  pswd = request.form.get('pswd')
+  
+  return {
+    'fname': fname,
+    'lname': lname,
+    'street_name': street_name,
+    'city': city,
+    'state': state,
+    'zipcode': zipcode,
+    'age': age,
+    'num': num,
+    'email': email,
+    'pswd': pswd
+  }
+
+if __name__ == '__main__':
+  create_database()
+  app.run(host='0.0.0.0', port=80)
