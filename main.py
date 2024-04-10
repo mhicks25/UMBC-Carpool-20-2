@@ -19,18 +19,31 @@ def index():
 def login():
     if request.method == 'POST':
         email = request.form.get('email')
-        pswd = request.form.get('pswd')
-      
+        pswd = request.form.get('psw')
+        
         # Connect to the database
         conn = sqlite3.connect('database.db')
         cursor = conn.cursor()
-      
-        # Check if the email, password, and role match records in the database
-        result = cursor.execute('SELECT * FROM student WHERE email = ?',(email,)).fetchone()
-        conn.close()
         
-      
-        if result:
+        # Retrieve hashed password from database
+        database_pswd = cursor.execute('SELECT pswd_hash FROM student WHERE email = ?', (email,)).fetchone()
+        
+        #input_pswd = bcrypt.hashpw(pswd.encode('utf-8'), database_pswd[1])
+        
+        if database_pswd is None:
+            # The email is not found in the database, so display an error message
+            flash('Invalid email or password')
+            return redirect(url_for('login'))
+          
+        # Decode the hashed password from bytes to str
+        database_pswd = database_pswd[0].decode('utf-8')
+        
+        if bcrypt.checkpw(pswd.encode('utf-8'),database_pswd.encode('utf-8')):
+          # Check if the email, password, and role match records in the database
+          result = cursor.execute('SELECT * FROM student WHERE email = ?',(email,)).fetchone()
+          conn.close()
+          
+          if result:
             #Store student infomation in session
             session['student_info'] = {
               'fname': result[1],
@@ -55,9 +68,11 @@ def login():
               session['student_id'] = result[0]
               session['role'] = result[11]
               return redirect('passenger')
-        else:
+          else:
             # Login failed, show an error message
             flash('Invalid email or password', 'error')
+            
+        conn.close()
           
     return render_template('login.html')
 
@@ -73,8 +88,9 @@ def EditProfile():
         return redirect(url_for('login'))
     
     student_info = session['student_info']
+    driver_info = session['driver_info']
 
-    return render_template('EditProfile.html', student_info=student_info)
+    return render_template('EditProfile.html', student_info=student_info, driver_info=driver_info)
 
 
 @app.route('/settings')
@@ -219,6 +235,7 @@ def getStudentInfo():
     'email': email,
     'pswd': pswd
   }
+
 
 if __name__ == '__main__':
   create_database()
