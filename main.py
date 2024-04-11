@@ -45,15 +45,15 @@ def login():
           
           if result:
             # Redirect to a different page based on the role
-            if result[11] == 'driver':
+            if result[12] == 'driver':
               # Store the student ID and role in the session
               session['student_id'] = result[0]
-              session['role'] = result[11]
+              session['role'] = result[12]
               return redirect('driver')
             else:
               # Store the student ID and role in the session
               session['student_id'] = result[0]
-              session['role'] = result[11]
+              session['role'] = result[12]
               return redirect('passenger')
           else:
             # Login failed, show an error message
