@@ -44,19 +44,6 @@ def login():
           conn.close()
           
           if result:
-            #Store student infomation in session
-            session['student_info'] = {
-              'fname': result[1],
-              'lname': result[2],
-              'street_name': result[3],
-              'city': result[4],
-              'state': result[5],
-              'zipcode': result[6],
-              'age': result[7],
-              'num': result[8],
-              'email': result[9],
-              'pswd': result[10]
-            }
             # Redirect to a different page based on the role
             if result[11] == 'driver':
               # Store the student ID and role in the session
@@ -84,13 +71,47 @@ def dropdown():
 @app.route('/edit')
 def EditProfile():
   
+    #check if student id is in session
+    #if not reuturn to login
     if 'student_id' not in session:
         return redirect(url_for('login'))
+      
+    student_id = session['student_id']
+      
+    conn = sqlite3.connect('database.db')
+    cursor = conn.cursor()
     
-    student_info = session['student_info']
-    driver_info = session['driver_info']
+    student_info = getStudentInfo(student_id)
+      
+    return render_template('EditProfile.html', student_info=student_info)
+  
+@app.route('/edit_profile', methods=['POST'])
+def edit_profile():
+  
+  conn = sqlite3.connect('database.db')
+  cursor = conn.cursor()
+  
+  if request.method == 'POST':
+        student_info = {
+            'fname': request.form['fname'],
+            'lname': request.form['lname'],
+            'street_name': request.form['street_name'],
+            'city': request.form['city'],
+            'state': request.form['state'],
+            'zipcode': request.form['zipcode'],
+            'age': request.form['age'],
+            'num': request.form['num'],
+        }
 
-    return render_template('EditProfile.html', student_info=student_info, driver_info=driver_info)
+        conn.execute('UPDATE student SET fname=?, lname=?, street_name=?, city=?, state=?, zipcode=?, age=?, num=? WHERE student_id =?',
+                     (student_info['fname'], student_info['lname'], student_info['street_name'], student_info['city'], student_info['state'], student_info['zipcode'],
+                      student_info['age'], student_info['num'], session['student_id']))
+
+        conn.commit()
+        conn.close()
+        
+  conn.close()
+  return redirect(url_for('EditProfile'))
 
 
 @app.route('/settings')
@@ -189,52 +210,17 @@ def create_database():
   database.create_table()
   conn.close()
 
-@app.route('/edit_profile', methods=['GET','POST'])
-def edit_profile(student_id):
-  
-  if 'student_id' not in session:
-    return redirect(url_for('login'))
-    
-  conn = sqlite3.connect('database.db')
-  cursor = conn.cursor()
-  
-  
-  student_info = getStudentInfo()
-  
-  conn.execute('UPDATE student SET fname=?, lname=?, street_name=?, city=?, state=?, zipcode=?, age=?, num=?, email=?, pswd=? WHERE student_id = ?', 
-               (student_info['fname'], student_info['lname'], student_info['street_name'], student_info['city'], student_info['state'], student_info['zipcode'], 
-                student_info['age'], student_info['num'], student_info['email'], student_info['pswd'], session[student_id]))
-  
-  conn.close()
-  
-  return redirect('edit')
 
-#Get Student Info
-def getStudentInfo():
-  #student info
-  fname = request.form.get('fname')
-  lname = request.form.get('lname')
-  street_name = request.form.get('street_name')
-  city = request.form.get('city')
-  state = request.form.get('state')
-  zipcode = request.form.get('zipcode')
-  age = request.form.get('age')
-  num = request.form.get('num')
-  email = request.form.get('email')
-  pswd = request.form.get('pswd')
-  
-  return {
-    'fname': fname,
-    'lname': lname,
-    'street_name': street_name,
-    'city': city,
-    'state': state,
-    'zipcode': zipcode,
-    'age': age,
-    'num': num,
-    'email': email,
-    'pswd': pswd
-  }
+def getStudentInfo(student_id):
+    conn = sqlite3.connect('database.db')
+    cursor = conn.cursor()
+
+    cursor.execute('SELECT * FROM student WHERE student_id = ?', (student_id,))
+    student = cursor.fetchone()
+
+    conn.close()
+
+    return student
 
 
 if __name__ == '__main__':

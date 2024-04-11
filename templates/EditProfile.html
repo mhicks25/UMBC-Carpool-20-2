@@ -32,16 +32,18 @@
         }
 
       .edit_container {
-        padding: 10px;
+        padding-left: 60px;
+        padding-right: 60px;
+        padding-top: 10px;
+        padding-bottom: 10px;
         background-color: #FFFFFF;
       }
 
       /* Full-width input fields */
       input[type=text], input[type=password], input[type=email], input[type=date], input[type=tel], select{
         width: 100%;
-        padding: 15px;
-        margin: 5px 0 22px 0;
-        display: inline-block;
+        padding: 5px;
+        margin-bottom: 10px;
         border: none;
         background: #f1f1f1;
       }
@@ -69,25 +71,25 @@
   </div>
 
     <div class = "edit_container">
-        <form action="/edit_profile" method="POST">
+        <form method="POST" action="/edit_profile">
 
-          <label for="fname">First Name</label>
-          <input type="text" id="fname" name="fname" value=""><br><br>
+          <label for="fname">First Name</label><br>
+          <input type="text" id="fname" name="fname" value="{{ student_info[1] }}" required><br><br>
 
-          <label for="lname">Last Name</label>
-          <input type="text" id="lname" name="lname" value=""><br><br>
+          <label for="lname">Last Name</label><br>
+          <input type="text" id="lname" name="lname" value="{{ student_info[2] }}" required><br><br>
 
-          <label for="address">Address</label><br><br>
-          <input type="text" id="street_name" name="street_name" placeholder="Street Name" required><br>
-          <input type="text" id="city" name="city" placeholder="City" required><br>
-          <input type="text" id="state" name="state" required ><br>
-          <input type="text" id="zipcode" name="zipcode" placeholder="Zipcode" pattern="[0-9]{5}"required><br><br>
+          <label for="address">Address</label><br>
+          <input type="text" id="street_name" name="street_name" placeholder="Street Name" value="{{ student_info[3] }}" required><br>
+          <input type="text" id="city" name="city" placeholder="City" value="{{ student_info[4] }}"required><br>
+          <input type="text" id="state" name="state" value="{{ student_info[5] }}" required ><br>
+          <input type="text" id="zipcode" name="zipcode" placeholder="Zipcode" pattern="[0-9]{5}" value="{{ student_info[6] }}"required><br><br>
 
           <label for="dob">Age</label><br>
-          <input type="date" id="age" name="age" required><br><br>
+          <input type="text" id="age" name="age" value="{{ student_info[7] }}" required><br><br>
 
-          <label for="num">Phone Number:</label>
-          <input type="tel" id="num" name="num" placeholder="123-456-7890" pattern="[0-9]{3}-[0-9]{3}-[0-9]{4}" required><br>
+          <label for="num">Phone Number</label><br>
+          <input type="tel" id="num" name="num" pattern="[0-9]{3}-[0-9]{3}-[0-9]{4}" value="{{ student_info[8] }}" required><br>
           <small>Format: 012-345-6789</small>
 
           <hr><br>
@@ -109,6 +111,7 @@
           if (confirm('Are you sure you want to submit the changes?')) {
               document.forms[0].submit();
           }
+          alert("Profile has been updated")
       }
   </script>
 </body>
