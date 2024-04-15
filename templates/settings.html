@@ -71,13 +71,19 @@
 <body>
     <div class= "container">
         <img id = "logo" src="static/profile.jpg">
-        <form>
+        <div class="form">
+        <form action="/edit_settings" method="POST">
             Email<br>
-          <input type="email" id="email" name="email" ><br>
+          <input type="email" id="email" name="email" value="{{student_info[9]}}"><br>
             Password<br>
-          <input type="password" id="pswd" name="pswd" ><br>
+          <input type="password" id="pswd" name="pswd" value="{{student_info[10]}}"><br>
             Role<br>
-          <input type="role" name="role" > <br> <br>
+            <label for="role">Choose a role:</label>
+            <select id="role" name="role">
+              <option value="driver">Driver</option>
+              <option value="passenger">Passenger</option>
+            </select>
+            <br><br>
 
           <label for="security">Privacy and Security:</label>
           <input type="checkbox" id="security" name="security">
@@ -90,15 +96,17 @@
           <br><br>
 
           <input type="submit" value="Save Preferences"> <br> <br>
-
+        
+        </form>
+        </div>
+        <div class="schedule">
            Class Schedule: <br>
             <img id = "schedule"src="static/ClassSchedule.jpg">
-
+          </div>
           <p>Do you want to delete your account?</p>
           <h2> Click here below! </h2>
           <button onclick="deleteDriver()">Delete Account</button>
 
-        </form>
     </div>
 </body>
 </html>

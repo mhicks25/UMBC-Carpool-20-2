@@ -116,8 +116,48 @@ def edit_profile():
 
 @app.route('/settings')
 def settings():
-  return render_template('settings.html')
+  #check if student id is in session
+    #if not reuturn to login
+    if 'student_id' not in session:
+        return redirect(url_for('login'))
+      
+    student_id = session['student_id']
+      
+    conn = sqlite3.connect('database.db')
+    cursor = conn.cursor()
+    
+    student_info = getStudentInfo(student_id)
+      
+    return render_template('settings.html', student_info=student_info)
+  
 
+@app.route('/edit_settings', methods=['POST'])
+def edit_settings():
+  
+  conn = sqlite3.connect('database.db')
+  cursor = conn.cursor()
+  
+  if request.method == 'POST':
+        student_info = {
+            'email': request.form['email'],
+            'pswd': request.form['pswd'],
+            'role': request.form['role']
+        }
+        
+        # Retrieve hashed password from database
+        database_pswd = cursor.execute('SELECT pswd_hash FROM student WHERE email = ?', (email,)).fetchone()
+        
+        hash_pswd = bcrypt.hashpw(student_info['pswd'].encode('utf-8'), salt)
+
+
+        conn.execute('UPDATE student SET email, pswd_hash, pswd_salt, role WHERE student_id =?',
+                     (student_info['email'], student_info['pswd'], student_info['role'], session['student_id']))
+
+        conn.commit()
+        conn.close()
+        
+  conn.close()
+  return redirect(url_for('settings'))
 
 @app.route('/driver')
 def driver():
